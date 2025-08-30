@@ -26,7 +26,7 @@ class MainMenu extends PositionComponent with HasGameRef<BubblePop>, TapCallback
 
     // Title text.
     titleText = TextComponent(
-      text: 'Bubble Blockade',
+      text: 'Bubble Pop',
       textRenderer: TextPaint(
         style: const TextStyle( // Added const
           color: Colors.white, // Fixed: Use Colors.white instead of BasicPalette
@@ -57,7 +57,7 @@ class MainMenu extends PositionComponent with HasGameRef<BubblePop>, TapCallback
   // Handle tap on the menu - Updated for new TapCallbacks system
   @override
   bool onTapDown(TapDownEvent event) {
-    onStart();
+    onStart(); // This calls the callback function passed from main game
     return true;
   }
 }

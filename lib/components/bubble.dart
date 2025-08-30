@@ -66,6 +66,8 @@ class Bubble extends SpriteComponent with HasGameRef<BubblePop>, TapCallbacks {
 
   @override
   bool onTapDown(TapDownEvent event) {
+    // Regular bubbles increment score, freeze bubbles handled in FreezeBubble class
+    gameRef.incrementScore();
     onBubblePop();
     return true;
   }

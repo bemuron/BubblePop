@@ -96,6 +96,12 @@ class BubblePop extends FlameGame with TapCallbacks {
     // TimerComponent updates automatically when added to the game
   }
 
+  // Public method to increment score - called by bubbles
+  void incrementScore() {
+    score++;
+    scoreDisplay.text = 'Score: $score';
+  }
+
   // Handle tap events
   @override
   bool onTapDown(TapDownEvent event) {
@@ -104,6 +110,12 @@ class BubblePop extends FlameGame with TapCallbacks {
       final mainMenus = children.query<MainMenu>();
       if (mainMenus.isNotEmpty) {
         _startGame();
+        return true; // Consume the tap
+      }
+
+      final gameOverMenu = children.query<GameOverMenu>();
+      if (gameOverMenu.isNotEmpty) {
+        _restartGame();
         return true; // Consume the tap
       }
       return false; // Allow tap to pass through if no menu

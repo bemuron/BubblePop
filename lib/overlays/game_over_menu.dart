@@ -57,7 +57,7 @@ class GameOverMenu extends PositionComponent with HasGameRef<BubblePop>, TapCall
   // Handle tap on the menu - Updated for new TapCallbacks system
   @override
   bool onTapDown(TapDownEvent event) {
-    onRestart();
+    onRestart(); // This calls the callback function passed from main game
     return true;
   }
 }

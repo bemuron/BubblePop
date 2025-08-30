@@ -4,29 +4,41 @@ import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 
 import '../components/bubble.dart';
+import '../components/freeze_bubble.dart';
 import '../main.dart';
 
 // An effect to freeze all bubbles on the screen.
 class FreezeEffect extends Component with HasGameRef<BubblePop> {
   static const double freezeDuration = 3.0; // seconds
   final List<Bubble> frozenBubbles = [];
+  final Map<Bubble, ColorEffect> freezeOverlays = {}; // Track overlays for removal
 
   @override
   Future<void> onLoad() async {
     await super.onLoad();
 
-    // Find all bubbles and freeze them
-    final bubbles = gameRef.children.query<Bubble>();
+    // Small delay to ensure the freeze bubble has time to start its pop animation
+    await Future.delayed(const Duration(milliseconds: 50));
+
+    // Find all bubbles except FreezeBubbles and freeze them
+    // Also exclude bubbles that are already popped
+    final bubbles = gameRef.children.query<Bubble>().where((bubble) {
+      return bubble is! FreezeBubble && !bubble.isPopped; // Exclude freeze bubbles and popped bubbles
+    }).toList();
 
     for (final bubble in bubbles) {
       frozenBubbles.add(bubble);
-      bubble.isFrozen = true; // ← First line goes here (freeze bubbles)
+      bubble.isFrozen = true;
 
-      // Optional: Add visual effect to show bubble is frozen
-      bubble.add(ColorEffect(
-        const Color(0x88FFFFFF), // Semi-transparent white overlay
+      // Create and add freeze visual effect
+      /*final freezeOverlay = ColorEffect(
+         Color(0x88ADD8E6), // Light blue overlay for freeze effect
         EffectController(duration: 0.2),
-      ));
+      );*/
+
+      // Store reference to the overlay for later removal
+      //freezeOverlays[bubble] = freezeOverlay;
+      //bubble.add(freezeOverlay);
     }
 
     // Create timer to unfreeze after duration
@@ -44,17 +56,25 @@ class FreezeEffect extends Component with HasGameRef<BubblePop> {
     // Unfreeze all bubbles and remove visual effects
     for (final bubble in List.from(frozenBubbles)) {
       if (bubble.isMounted) { // Check if bubble still exists
-        bubble.isFrozen = false; // ← Second line goes here (unfreeze bubbles)
+        bubble.isFrozen = false;
 
-        // Remove freeze visual effect
-        bubble.add(ColorEffect(
+        // Remove the specific freeze overlay we added
+        /*final overlay = freezeOverlays[bubble];
+        if (overlay != null && overlay.isMounted) {
+          overlay.removeFromParent();
+        }*/
+
+        // Add a fade-out effect to show unfreezing
+        /*bubble.add(ColorEffect(
           const Color(0x00FFFFFF), // Transparent
-          EffectController(duration: 0.2),
-        ));
+          EffectController(duration: 0.3),
+        ));*/
       }
     }
 
+    // Clear the lists
     frozenBubbles.clear();
+    freezeOverlays.clear();
   }
 
   @override
