@@ -23,7 +23,6 @@ void main() {
 }
 
 // The main game class. It handles the game state and logic.
-// Now using TapCallbacks, which is more appropriate for a tap-based game.
 class BubblePop extends FlameGame with TapCallbacks {
   // Game state variables
   int score = 0;
@@ -32,20 +31,20 @@ class BubblePop extends FlameGame with TapCallbacks {
   final int maxStones = 10;
   final Random _random = Random();
   final TextPaint scoreTextPaint = TextPaint(
-      style: const TextStyle( // Added const
-        color: Colors.black, // Fixed: Use Colors.black instead of BasicPalette
+      style: const TextStyle(
+        color: Colors.black,
         fontSize: 24.0,
         fontWeight: FontWeight.bold,
       ));
 
   // Game components
-  late TimerComponent _bubbleSpawner; // Changed from Timer to TimerComponent
+  late TimerComponent _bubbleSpawner;
   late TextComponent scoreDisplay;
   late TextComponent stonesDisplay;
 
   // The size of the game world.
   @override
-  Color backgroundColor() => const Color(0xFF1D2021); // Sky blue background
+  Color backgroundColor() => const Color(0xFF87CEEB); // Sky blue background
 
   // Called once when the game starts.
   @override
@@ -54,13 +53,14 @@ class BubblePop extends FlameGame with TapCallbacks {
 
     // Load assets and set up game components.
     // The background is a simple color, but you could load a sprite here.
+    /*
     final background = SpriteComponent()
       ..sprite = await loadSprite('city_background.png')
       ..size = size
       ..anchor = Anchor.topLeft
       ..position = Vector2(0, 0);
-    // Note: To use a custom background, you'd need to add it to your assets folder and uncomment this.
-    // add(background);
+    add(background);
+    */
 
     // Initialize the UI text components.
     scoreDisplay = TextComponent(
@@ -77,35 +77,42 @@ class BubblePop extends FlameGame with TapCallbacks {
     );
     add(stonesDisplay);
 
-    // Set up the bubble spawner timer - using TimerComponent instead of Timer
+    // Set up the bubble spawner timer - but don't add it yet
     _bubbleSpawner = TimerComponent(
       period: 1.5,
       onTick: _spawnBubble,
       repeat: true,
     );
-    add(_bubbleSpawner); // Add the timer component to the game
+    // Don't add the timer here - only add it when game starts
 
     // Show the main menu initially.
     _showMainMenu();
   }
 
-  // The main game loop - TimerComponent handles itself, no need to manually update
+  // The main game loop - no manual timer update needed
   @override
   void update(double dt) {
     super.update(dt);
     // TimerComponent updates automatically when added to the game
   }
 
-  // Now using onTapDown, which is the correct method for tap events.
+  // Handle tap events
   @override
   bool onTapDown(TapDownEvent event) {
     if (!isPlaying) {
-      _startGame();
+      // Check if we have a main menu and start the game
+      final mainMenus = children.query<MainMenu>();
+      if (mainMenus.isNotEmpty) {
+        _startGame();
+        return true; // Consume the tap
+      }
+      return false; // Allow tap to pass through if no menu
     } else {
       // Find and handle taps on bubbles using the new query system
       final tappedBubbles = children.query<Bubble>().where((bubble) {
-        // Use built-in hit detection instead of manual containsPoint
-        return bubble.containsLocalPoint(event.localPosition);
+        // Check if tap position is within bubble bounds
+        final bubbleRect = bubble.toRect();
+        return bubbleRect.contains(event.localPosition.toOffset());
       }).toList();
 
       for (var bubble in tappedBubbles) {
@@ -119,8 +126,8 @@ class BubblePop extends FlameGame with TapCallbacks {
           bubble.onBubblePop();
         }
       }
+      return true; // Consume the tap event
     }
-    return true; // Return true to consume the event
   }
 
   // Spawns a new bubble.
@@ -128,14 +135,24 @@ class BubblePop extends FlameGame with TapCallbacks {
     // Randomly choose between a regular bubble and a freeze bubble.
     final isFreezeBubble = _random.nextDouble() < 0.1; // 10% chance
     final bubble = isFreezeBubble ? FreezeBubble() : Bubble();
-    bubble.x = _random.nextDouble() * (size.x - bubble.size.x);
+
+    // Position bubble at bottom of screen with random X position
+    bubble.position = Vector2(
+      _random.nextDouble() * (size.x - bubble.size.x),
+      size.y, // Start just below the bottom of screen
+    );
+
+    // Give bubbles varying speeds (50-150 pixels per second)
+    bubble.speed = 50.0 + _random.nextDouble() * 100.0;
+
     add(bubble);
   }
 
   // Game over state handler.
   void _gameOver() {
     isPlaying = false;
-    _bubbleSpawner.timer.stop(); // Access the internal timer to stop it
+    // Remove the timer component to stop spawning
+    _bubbleSpawner.removeFromParent();
     // Add the game over screen.
     add(GameOverMenu(onRestart: _restartGame));
   }
@@ -143,24 +160,35 @@ class BubblePop extends FlameGame with TapCallbacks {
   // Starts the game.
   void _startGame() {
     // Clear the current children (bubbles, etc.) and reset state.
-    children.query<MainMenu>().firstOrNull?.removeFromParent();
+    children.query<MainMenu>().forEach((menu) => menu.removeFromParent());
     _resetGameState();
     isPlaying = true;
-    _bubbleSpawner.timer.start(); // Access the internal timer to start it
+
+    // Add and start the timer component
+    add(_bubbleSpawner);
   }
 
   // Restarts the game.
   void _restartGame() {
-    children.query<GameOverMenu>().firstOrNull?.removeFromParent();
+    children.query<GameOverMenu>().forEach((menu) => menu.removeFromParent());
     _resetGameState();
     isPlaying = true;
-    _bubbleSpawner.timer.start(); // Access the internal timer to start it
+
+    // Add and start the timer component
+    add(_bubbleSpawner);
   }
 
   // Resets all game state variables.
   void _resetGameState() {
-    removeAll(children.query<Bubble>());
-    removeAll(children.query<Stone>());
+    // Remove all bubbles and stones
+    children.query<Bubble>().forEach((bubble) => bubble.removeFromParent());
+    children.query<Stone>().forEach((stone) => stone.removeFromParent());
+
+    // Remove timer if it exists
+    if (_bubbleSpawner.isMounted) {
+      _bubbleSpawner.removeFromParent();
+    }
+
     score = 0;
     stones = 0;
     scoreDisplay.text = 'Score: $score';
