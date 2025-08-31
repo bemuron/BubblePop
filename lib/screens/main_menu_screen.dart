@@ -19,7 +19,15 @@ class MainMenuScreen extends StatelessWidget {
     final palette = context.watch<Palette>();
     final settingsController = context.watch<SettingsController>();
     final audioController = context.watch<AudioController>();
-    final playerProgress = context.watch<PlayerProgress>(); // Fixed: Use PlayerProgressController
+    final playerProgress = context.watch<PlayerProgress>();
+
+    // Update audio controller with current settings
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      audioController.updateSettings(
+        musicOn: settingsController.musicOn,
+        soundsOn: settingsController.soundsOn,
+      );
+    }); // Fixed: Use PlayerProgressController
 
     return Scaffold(
       backgroundColor: palette.backgroundMain,

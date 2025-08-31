@@ -1,16 +1,12 @@
 // File: lib/src/ads/ads_controller.dart
 import 'dart:io';
 
-import 'package:flutter/widgets.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
-import '../app_lifecycle/app_lifecycle.dart';
-
-/// Allows awarding ads to be shown, and handles loading and errors.
-class AdsController {
+/// Allows showing ads and handles loading and errors.
+class AdsController extends ChangeNotifier {
   final MobileAds _mobileAds;
-  AppLifecycleStateNotifier? _lifecycleNotifier;
 
   AdsController(this._mobileAds);
 
@@ -20,53 +16,11 @@ class AdsController {
   /// Preloaded interstitial ad
   InterstitialAd? _interstitialAd;
 
-  AppLifecycleObserver? _lifecycleObserver;
-
-  /*void attachLifecycleObserver(AppLifecycleObserver lifecycleObserver) {
-    _lifecycleObserver = lifecycleObserver;
-  }*/
-
-  void attachLifecycleNotifier(AppLifecycleStateNotifier notifier) {
-    _lifecycleNotifier = notifier;
-
-    // Listen to lifecycle changes
-    _lifecycleNotifier!.addListener(_handleLifecycleChange);
-  }
-
-  void _handleLifecycleChange() {
-    final state = _lifecycleNotifier!.value;
-
-    switch (state) {
-      case AppLifecycleState.paused:
-      // Pause ad-related operations if needed
-        print('App paused: consider pausing ad loading or tracking');
-        break;
-      case AppLifecycleState.resumed:
-      // Resume ad-related operations
-        print('App resumed: resume ad loading or tracking');
-        break;
-      case AppLifecycleState.inactive:
-        print('App inactive');
-        break;
-      case AppLifecycleState.detached:
-        print('App detached');
-        break;
-      case AppLifecycleState.hidden:
-        // TODO: Handle this case.
-        print('App hidden');
-        break;
-    }
-  }
-
-  /*void dispose() {
-    _rewardedAd?.dispose();
-    _interstitialAd?.dispose();
-  }*/
-
+  @override
   void dispose() {
-    _lifecycleNotifier?.removeListener(_handleLifecycleChange);
     _rewardedAd?.dispose();
     _interstitialAd?.dispose();
+    super.dispose();
   }
 
   /// Preload a rewarded ad to be used later.
@@ -115,6 +69,7 @@ class AdsController {
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (ad) {
           _rewardedAd = ad;
+          notifyListeners();
         },
         onAdFailedToLoad: (error) {
           if (kDebugMode) {
@@ -134,6 +89,7 @@ class AdsController {
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (ad) {
           _interstitialAd = ad;
+          notifyListeners();
         },
         onAdFailedToLoad: (error) {
           if (kDebugMode) {
@@ -144,9 +100,6 @@ class AdsController {
     );
   }
 
-  /// Returns the ad unit ID for rewarded ads.
-  ///
-  /// Throws an [UnsupportedError] when called on unsupported platforms.
   String _getRewardedAdUnitId() {
     if (Platform.isAndroid) {
       return 'ca-app-pub-3940256099942544/5224354917'; // Test ID
@@ -157,7 +110,6 @@ class AdsController {
     }
   }
 
-  /// Returns the ad unit ID for interstitial ads.
   String _getInterstitialAdUnitId() {
     if (Platform.isAndroid) {
       return 'ca-app-pub-3940256099942544/1033173712'; // Test ID

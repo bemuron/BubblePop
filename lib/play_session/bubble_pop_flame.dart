@@ -8,6 +8,7 @@ import 'package:flame/game.dart';
 import 'package:flame/text.dart';
 import 'dart:math';
 
+import '../ads/ads_controller.dart';
 import '../audio/audio_controller.dart';
 import '../audio/sounds.dart';
 import '../game_internals/level_state.dart';
@@ -21,6 +22,7 @@ class BubblePopFlameGame extends FlameGame with TapCallbacks {
   // Dependencies injected from the widget
   LevelState? levelState;
   AudioController? audioController;
+  late AdsController adsController; // Add ads controller
 
   // Game state
   final Random _random = Random();
@@ -36,7 +38,7 @@ class BubblePopFlameGame extends FlameGame with TapCallbacks {
   Future<void> onLoad() async {
     await super.onLoad();
 
-    // Initialize UI components
+    // Initialize UI components - simplified version
     final textRenderer = TextPaint(
       style: const TextStyle(
         color: Colors.white,
@@ -122,6 +124,10 @@ class BubblePopFlameGame extends FlameGame with TapCallbacks {
     levelState?.addStone();
 
     if ((levelState?.stones ?? 0) >= maxStones) {
+      // Preload ads before game over
+      adsController.preloadAd();
+
+      // Game over - trigger the lose callback
       levelState?.setGameOver(won: false);
     }
 

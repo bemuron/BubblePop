@@ -39,7 +39,6 @@ class Bubble extends SpriteComponent with HasGameRef<BubblePopFlameGame>, TapCal
     // If the bubble reaches the top, it becomes a stone.
     if (y + size.y < 0) {
       _createStone();
-      gameRef.addStone();
       removeFromParent();
     }
   }
@@ -61,6 +60,9 @@ class Bubble extends SpriteComponent with HasGameRef<BubblePopFlameGame>, TapCal
       ..size = size
       ..anchor = anchor;
     gameRef.add(stone);
+
+    // This will trigger game over check
+    gameRef.addStone();
   }
 
   void onBubblePop() {

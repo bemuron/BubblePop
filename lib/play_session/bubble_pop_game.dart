@@ -3,6 +3,7 @@ import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../ads/ads_controller.dart';
 import '../game_internals/level_state.dart';
 import '../audio/audio_controller.dart';
 import '../audio/sounds.dart';
@@ -27,11 +28,12 @@ class _BubblePopGameState extends State<BubblePopGame> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer2<LevelState, AudioController>(
-      builder: (context, levelState, audioController, child) {
-        // Pass the level state and audio controller to the game
+    return Consumer3<LevelState, AudioController, AdsController>(
+      builder: (context, levelState, audioController, adsController, child) {
+        // Pass all controllers to the game
         game.levelState = levelState;
         game.audioController = audioController;
+        game.adsController = adsController;
 
         return GameWidget<BubblePopFlameGame>.controlled(
           gameFactory: () => game,

@@ -28,6 +28,9 @@ void main() async {
 
 /// Without logging and crash reporting, this would be `void main()`.
 void guardedMain() {
+  // Disable provider debug check if needed
+  Provider.debugCheckInvalidValueType = null;
+
   if (kIsWeb || Platform.isIOS || Platform.isAndroid) {
     // Initialize mobile ads on supported platforms
     MobileAds.instance.initialize();
@@ -42,30 +45,17 @@ class MyApp extends StatelessWidget {
     return AppLifecycleObserver(
       child: MultiProvider(
         providers: [
-          ChangeNotifierProvider(create: (context) => SettingsController()),
+          ChangeNotifierProvider(create: (context) => SettingsController()..initialize()),
           ChangeNotifierProvider(
             create: (context) => PlayerProgress()..initialize(),
           ),
-          ProxyProvider2<SettingsController, ValueNotifier<AppLifecycleState>,
-              AudioController>(
+          ChangeNotifierProvider<AudioController>(
             create: (context) => AudioController()..initialize(),
-            update: (context, settings, lifecycleNotifier, audio) {
-              if (audio == null) throw ArgumentError.notNull('audio');
-              audio.attachSettings(settings);
-              audio.attachLifecycleNotifier(lifecycleNotifier);
-              return audio;
-            },
-            dispose: (context, audio) => audio.dispose(),
           ),
           Provider(create: (context) => GamesServicesController()),
           Provider(create: (context) => InAppPurchaseController()),
-          ProxyProvider<AppLifecycleStateNotifier, AdsController>(
-            create: (_) => AdsController(MobileAds.instance),
-            update: (_, lifecycleNotifier, ads) {
-              ads!.attachLifecycleNotifier(lifecycleNotifier);
-              return ads;
-            },
-            dispose: (_, ads) => ads.dispose(),
+          ChangeNotifierProvider<AdsController>(
+            create: (context) => AdsController(MobileAds.instance),
           ),
           ChangeNotifierProvider(create: (context) => Palette()),
         ],

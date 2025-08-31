@@ -14,6 +14,7 @@ import '../player_progress/player_progress.dart';
 import '../style/confetti.dart';
 import '../style/palette.dart';
 import 'bubble_pop_game.dart';
+import '../screens/game_over_screen.dart';
 
 class PlaySessionScreen extends StatefulWidget {
   const PlaySessionScreen({super.key});
@@ -24,10 +25,10 @@ class PlaySessionScreen extends StatefulWidget {
 
 class _PlaySessionScreenState extends State<PlaySessionScreen> {
   static const _celebrationDuration = Duration(milliseconds: 2000);
-
   static const _preCelebrationDuration = Duration(milliseconds: 500);
 
   late DateTime _startOfPlay;
+  bool _showGameOver = false;
 
   @override
   Widget build(BuildContext context) {
@@ -42,60 +43,70 @@ class _PlaySessionScreenState extends State<PlaySessionScreen> {
           ),
         ),
       ],
-      child: IgnorePointer(
-        ignoring: _duringCelebration,
-        child: Scaffold(
-          backgroundColor: palette.backgroundPlaySession,
-          body: Stack(
-            children: [
-              // The main game widget
-              Positioned.fill(
-                child: BubblePopGame(),
-              ),
-
-              // UI overlay for pause, score, etc.
-              SafeArea(
-                child: Stack(
-                  children: [
-                    // Back button
-                    Align(
-                      alignment: Alignment.topLeft,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: InkResponse(
-                          onTap: () => GoRouter.of(context).pop(),
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: palette.backgroundSettings,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Icon(
-                              Icons.arrow_back_ios_new,
-                              color: palette.ink,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    // Confetti overlay for celebration
-                    SizedBox.expand(
-                      child: Visibility(
-                        visible: _duringCelebration,
-                        child: IgnorePointer(
-                          child: Confetti(
-                            isStopped: !_duringCelebration,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+      child: Consumer<LevelState>(
+        builder: (context, levelState, child) {
+          return Scaffold(
+            backgroundColor: palette.backgroundPlaySession,
+            body: Stack(
+              children: [
+                // The main game widget
+                Positioned.fill(
+                  child: const BubblePopGame(),
                 ),
-              ),
-            ],
-          ),
-        ),
+
+                // UI overlay for pause, score, etc.
+                SafeArea(
+                  child: Stack(
+                    children: [
+                      // Back button
+                      Align(
+                        alignment: Alignment.topLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: InkResponse(
+                            onTap: () => GoRouter.of(context).pop(),
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: palette.backgroundSettings,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Icon(
+                                Icons.arrow_back_ios_new,
+                                color: palette.ink,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // Confetti overlay for celebration
+                      SizedBox.expand(
+                        child: Visibility(
+                          visible: _duringCelebration,
+                          child: IgnorePointer(
+                            child: Confetti(
+                              isStopped: !_duringCelebration,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // Game Over Screen
+                      if (levelState.isGameOver)
+                        Positioned.fill(
+                          child: GameOverScreen(
+                            levelState: levelState, // Pass levelState directly
+                            onRestart: _restartGame,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -105,7 +116,7 @@ class _PlaySessionScreenState extends State<PlaySessionScreen> {
     super.initState();
     _startOfPlay = DateTime.now();
 
-    // Preload ad for when player loses
+    // Preload ads for when player loses
     final adsController = context.read<AdsController>();
     adsController.preloadAd();
   }
@@ -116,7 +127,6 @@ class _PlaySessionScreenState extends State<PlaySessionScreen> {
     final levelState = context.read<LevelState>();
     final playerProgress = context.read<PlayerProgress>();
     final audioController = context.read<AudioController>();
-    final adsController = context.read<AdsController>();
 
     // Record game completion and update high score
     await playerProgress.recordGamePlayed();
@@ -125,14 +135,18 @@ class _PlaySessionScreenState extends State<PlaySessionScreen> {
 
     audioController.playSfx(SfxType.gameOver);
 
-    // Show interstitial ad after game over
-    await adsController.showInterstitialAd();
+    // Game over screen will show automatically due to levelState.isGameOver being true
+    // The GameOverScreen widget handles the display
+  }
 
-    // Navigate back to main menu after a delay
-    if (mounted) {
-      await Future.delayed(const Duration(seconds: 1));
-      GoRouter.of(context).go('/');
-    }
+  void _restartGame() {
+    final levelState = context.read<LevelState>();
+    final adsController = context.read<AdsController>();
+
+    levelState.reset(); // This will hide the game over screen and restart
+
+    // Preload ads for next game over
+    adsController.preloadAd();
   }
 
   Future<void> _playerWon() async {
