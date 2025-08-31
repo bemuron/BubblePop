@@ -1,4 +1,3 @@
-import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:flame/events.dart';
 
@@ -28,7 +27,8 @@ class FreezeBubble extends Bubble {
 
   @override
   void update(double dt) {
-    if (!gameRef.isPlaying || isPopped || isFrozen) return;
+    if (isPopped || isFrozen) return;
+    //if (!gameRef.isPlaying || isPopped || isFrozen) return;
 
     y -= speed * dt; // Move UP the screen (y decreases = moves up)
 

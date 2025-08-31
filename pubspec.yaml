@@ -30,7 +30,37 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+
+  # Game engine
   flame: ^1.32.0
+
+  # State management
+  provider: ^6.1.1
+
+  # Navigation
+  go_router: ^14.0.0
+
+  # Ads
+  google_mobile_ads: ^5.0.0
+
+  # Audio
+  audioplayers: ^6.0.0
+
+  # Games services (leaderboards, achievements)
+  games_services: ^4.0.0
+
+  # In-app purchases (optional)
+  in_app_purchase: ^3.1.13
+
+  # Crash reporting
+  firebase_crashlytics: ^3.4.8
+  firebase_core: ^2.24.2
+
+  # Shared preferences
+  shared_preferences: ^2.2.2
+
+  # Logging
+  logging: ^1.2.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -61,7 +91,13 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
    - assets/images/
+   - assets/music/
+   - assets/sfx/
 
+  fonts:
+    - family: Permanent Marker
+      fonts:
+        - asset: assets/fonts/Permanent_Marker/PermanentMarker-Regular.ttf
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 

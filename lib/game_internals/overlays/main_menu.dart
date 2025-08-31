@@ -1,11 +1,12 @@
+import 'package:bubble_pop/play_session/bubble_pop_flame.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart'; // Added for TapCallbacks
 import 'package:flutter/material.dart';
 
-import '../main.dart';
+import '/main.dart';
 
 // Main Menu overlay.
-class MainMenu extends PositionComponent with HasGameRef<BubblePop>, TapCallbacks {
+class MainMenu extends PositionComponent with HasGameRef<BubblePopFlameGame>, TapCallbacks {
   final VoidCallback onStart;
   late final RectangleComponent background;
   late final TextComponent titleText;

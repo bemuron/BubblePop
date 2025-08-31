@@ -1,10 +1,11 @@
+import 'package:bubble_pop/play_session/bubble_pop_flame.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart'; // Changed from palette import
 
-import '../main.dart';
+import '/main.dart';
 
 // Represents a stone that blocks the pipe.
-class Stone extends SpriteComponent with HasGameRef<BubblePop> {
+class Stone extends SpriteComponent with HasGameRef<BubblePopFlameGame> {
   // Fixed: Use Flutter Colors instead of BasicPalette
   static final _paint = Paint()
     ..color = Colors.grey

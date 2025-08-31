@@ -1,14 +1,12 @@
-import 'dart:ui';
-
+import 'package:bubble_pop/play_session/bubble_pop_flame.dart';
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 
 import '../components/bubble.dart';
-import '../components/freeze_bubble.dart';
-import '../main.dart';
+import '../../play_session/components/freeze_bubble.dart';
 
 // An effect to freeze all bubbles on the screen.
-class FreezeEffect extends Component with HasGameRef<BubblePop> {
+class FreezeEffect extends Component with HasGameRef<BubblePopFlameGame> {
   static const double freezeDuration = 3.0; // seconds
   final List<Bubble> frozenBubbles = [];
   final Map<Bubble, ColorEffect> freezeOverlays = {}; // Track overlays for removal
