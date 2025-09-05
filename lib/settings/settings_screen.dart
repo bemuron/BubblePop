@@ -16,7 +16,7 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final settings = context.watch<SettingsController>();
     final palette = context.watch<Palette>();
-    final playerProgress = context.watch<PlayerProgress>();
+    final playerProgress = context.watch<PlayerProgressController>();
 
     return Scaffold(
       backgroundColor: palette.backgroundSettings,

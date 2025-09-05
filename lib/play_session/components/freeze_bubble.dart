@@ -1,8 +1,11 @@
+import 'package:flame/effects.dart';
 import 'package:flutter/material.dart';
 import 'package:flame/events.dart';
+import 'package:flame/components.dart';
 
 import 'bubble.dart';
 import '../effects/freeze_effect.dart';
+import '../../game_internals/level_state.dart';
 
 // Represents a freeze bubble that stops all other bubbles when popped.
 class FreezeBubble extends Bubble {
@@ -10,41 +13,51 @@ class FreezeBubble extends Bubble {
     ..color = Colors.lightBlueAccent
     ..filterQuality = FilterQuality.high;
 
-  FreezeBubble() : super();
+  FreezeBubble() : super(bubbleSize: BubbleSize.normal);
 
   @override
   Future<void> onLoad() async {
     await super.onLoad();
-    // Use a different sprite or color for freeze bubbles
-    // You can replace this with a freeze bubble sprite
+
     try {
-      sprite = await gameRef.loadSprite('bubble_2.png');
+      sprite = await gameRef.loadSprite('freeze_bubble.png');
     } catch (e) {
-      // Fallback to colored circle if sprite doesn't exist
       paint = _freezePaint;
     }
+
+    // Add glowing effect
+    add(ScaleEffect.by(
+      Vector2.all(0.1),
+      EffectController(
+        duration: 1.0,
+        reverseDuration: 1.0,
+        infinite: true,
+      ),
+    ));
   }
 
   @override
   void update(double dt) {
+    if (gameRef.levelState?.isGameOver ?? true) return;
     if (isPopped || isFrozen) return;
-    //if (!gameRef.isPlaying || isPopped || isFrozen) return;
 
-    y -= speed * dt; // Move UP the screen (y decreases = moves up)
+    y -= speed * dt;
 
     // Freeze bubbles just disappear when they reach the top (don't turn into stones)
     if (y + size.y < 0) {
       removeFromParent();
-      // Don't call gameRef.addStone() - freeze bubbles don't become stones
     }
   }
 
   @override
   bool onTapDown(TapDownEvent event) {
-    // Add freeze effect when freeze bubble is popped
-    gameRef.add(FreezeEffect());
-    // The freeze bubble should pop and disappear immediately
-    onBubblePop();
+    if (gameRef.levelState?.isGameOver ?? true) return false;
+
+    // Check if freeze bubbles are available
+    if ((gameRef.levelState?.freezeBubblesRemaining ?? 0) > 0) {
+      gameRef.onFreezeBubblePopped();
+      onBubblePop();
+    }
     return true;
   }
 }

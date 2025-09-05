@@ -9,15 +9,16 @@ import '../ads/ads_controller.dart';
 import '../audio/audio_controller.dart';
 import '../audio/sounds.dart';
 import '../game_internals/level_state.dart';
-//import '../games_services/score.dart';
 import '../player_progress/player_progress.dart';
 import '../style/confetti.dart';
 import '../style/palette.dart';
 import 'bubble_pop_game.dart';
-import '../screens/game_over_screen.dart';
 
 class PlaySessionScreen extends StatefulWidget {
-  const PlaySessionScreen({super.key});
+  final int level;
+
+  const PlaySessionScreen({required this.level, super.key});
+  //const PlaySessionScreen({super.key});
 
   @override
   State<PlaySessionScreen> createState() => _PlaySessionScreenState();
@@ -25,10 +26,10 @@ class PlaySessionScreen extends StatefulWidget {
 
 class _PlaySessionScreenState extends State<PlaySessionScreen> {
   static const _celebrationDuration = Duration(milliseconds: 2000);
+
   static const _preCelebrationDuration = Duration(milliseconds: 500);
 
   late DateTime _startOfPlay;
-  bool _showGameOver = false;
 
   @override
   Widget build(BuildContext context) {
@@ -40,73 +41,63 @@ class _PlaySessionScreenState extends State<PlaySessionScreen> {
           create: (context) => LevelState(
             onWin: _playerWon,
             onLose: _playerLost,
-          ),
+          )..startLevel(widget.level), // Start the specified level
         ),
       ],
-      child: Consumer<LevelState>(
-        builder: (context, levelState, child) {
-          return Scaffold(
-            backgroundColor: palette.backgroundPlaySession,
-            body: Stack(
-              children: [
-                // The main game widget
-                Positioned.fill(
-                  child: const BubblePopGame(),
-                ),
+      child: IgnorePointer(
+        ignoring: _duringCelebration,
+        child: Scaffold(
+          backgroundColor: palette.backgroundPlaySession,
+          body: Stack(
+            children: [
+              // The main game widget
+              Positioned.fill(
+                child: BubblePopGame(),
+              ),
 
-                // UI overlay for pause, score, etc.
-                SafeArea(
-                  child: Stack(
-                    children: [
-                      // Back button
-                      Align(
-                        alignment: Alignment.topLeft,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: InkResponse(
-                            onTap: () => GoRouter.of(context).pop(),
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: palette.backgroundSettings,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Icon(
-                                Icons.arrow_back_ios_new,
-                                color: palette.ink,
-                              ),
+              // UI overlay for pause, score, etc.
+              SafeArea(
+                child: Stack(
+                  children: [
+                    // Back button
+                    Align(
+                      alignment: Alignment.topLeft,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: InkResponse(
+                          onTap: () => GoRouter.of(context).pop(),
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: palette.backgroundSettings,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              Icons.arrow_back_ios_new,
+                              color: palette.ink,
                             ),
                           ),
                         ),
                       ),
+                    ),
 
-                      // Confetti overlay for celebration
-                      SizedBox.expand(
-                        child: Visibility(
-                          visible: _duringCelebration,
-                          child: IgnorePointer(
-                            child: Confetti(
-                              isStopped: !_duringCelebration,
-                            ),
+                    // Confetti overlay for celebration
+                    SizedBox.expand(
+                      child: Visibility(
+                        visible: _duringCelebration,
+                        child: IgnorePointer(
+                          child: Confetti(
+                            isStopped: !_duringCelebration,
                           ),
                         ),
                       ),
-
-                      // Game Over Screen
-                      if (levelState.isGameOver)
-                        Positioned.fill(
-                          child: GameOverScreen(
-                            levelState: levelState, // Pass levelState directly
-                            onRestart: _restartGame,
-                          ),
-                        ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          );
-        },
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -116,7 +107,7 @@ class _PlaySessionScreenState extends State<PlaySessionScreen> {
     super.initState();
     _startOfPlay = DateTime.now();
 
-    // Preload ads for when player loses
+    // Preload ad for when player loses
     final adsController = context.read<AdsController>();
     adsController.preloadAd();
   }
@@ -125,7 +116,7 @@ class _PlaySessionScreenState extends State<PlaySessionScreen> {
 
   Future<void> _playerLost() async {
     final levelState = context.read<LevelState>();
-    final playerProgress = context.read<PlayerProgress>();
+    final playerProgress = context.read<PlayerProgressController>();
     final audioController = context.read<AudioController>();
 
     // Record game completion and update high score
@@ -151,7 +142,7 @@ class _PlaySessionScreenState extends State<PlaySessionScreen> {
 
   Future<void> _playerWon() async {
     final levelState = context.read<LevelState>();
-    final playerProgress = context.read<PlayerProgress>();
+    final playerProgress = context.read<PlayerProgressController>();
     final audioController = context.read<AudioController>();
 
     // Record game completion and update high score

@@ -1,4 +1,4 @@
-// File: lib/src/main_menu/main_menu_screen.dart
+// File: lib/main_menu/main_menu_screen.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -19,7 +19,7 @@ class MainMenuScreen extends StatelessWidget {
     final palette = context.watch<Palette>();
     final settingsController = context.watch<SettingsController>();
     final audioController = context.watch<AudioController>();
-    final playerProgress = context.watch<PlayerProgress>();
+    final playerProgress = context.watch<PlayerProgressController>();
 
     // Update audio controller with current settings
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -79,7 +79,7 @@ class MainMenuScreen extends StatelessWidget {
               ElevatedButton(
                 onPressed: () {
                   audioController.playSfx(SfxType.buttonTap);
-                  GoRouter.of(context).go('/play');
+                  GoRouter.of(context).go('/level-select');
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: palette.backgroundLevelSelection,

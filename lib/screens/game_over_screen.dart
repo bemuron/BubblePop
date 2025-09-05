@@ -68,7 +68,7 @@ class _GameOverScreenState extends State<GameOverScreen>
   @override
   Widget build(BuildContext context) {
     final palette = context.watch<Palette>();
-    final playerProgress = context.watch<PlayerProgress>();
+    final playerProgress = context.watch<PlayerProgressController>();
     final adsController = context.watch<AdsController>();
 
     return Material(
