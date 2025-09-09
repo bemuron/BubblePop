@@ -13,9 +13,11 @@ import '../audio/audio_controller.dart';
 import '../audio/sounds.dart';
 import '../game_internals/level_state.dart';
 import 'components/bubble.dart';
+import 'components/freeze_indicator.dart';
 import 'components/freeze_bubble.dart';
 import 'components/stone.dart';
 import 'effects/freeze_effect.dart';
+import 'components/water_flow_display.dart';
 
 /// The main Flame game class for Bubble Pop
 class BubblePopFlameGame extends FlameGame with TapCallbacks {
@@ -27,9 +29,15 @@ class BubblePopFlameGame extends FlameGame with TapCallbacks {
   // Game state
   final Random _random = Random();
   final int maxStones = 10;
+  final double _spawnInterval = 0.8; // Time between bubble spawns
   late TimerComponent _bubbleSpawner;
   late TextComponent scoreDisplay;
   late TextComponent stonesDisplay;
+  late TextComponent levelDisplay;
+
+  late WaterFlowBar waterFlowBar;
+  late TextComponent waterFlowTextDisplay;
+  late FreezeIndicator freezeIndicator;
 
   @override
   Color backgroundColor() => const Color(0xFF87CEEB);
@@ -38,38 +46,80 @@ class BubblePopFlameGame extends FlameGame with TapCallbacks {
   Future<void> onLoad() async {
     await super.onLoad();
 
-    // Initialize UI components
     final textRenderer = TextPaint(
       style: const TextStyle(
         color: Colors.white,
         fontSize: 24.0,
         fontWeight: FontWeight.bold,
-        shadows: [
-          Shadow(
-            blurRadius: 2,
-            color: Colors.black54,
-          ),
-        ],
+        shadows: [Shadow(blurRadius: 2, color: Colors.black54)],
       ),
     );
+
+    final double padding = size.x * 0.02;
+    final double columnWidth = size.x * 0.4;
+
+    // Left Column
+    final leftUI = PositionComponent(
+      position: Vector2(padding, padding),
+      size: Vector2(columnWidth, size.y * 0.3),
+    );
+    add(leftUI);
 
     scoreDisplay = TextComponent(
       text: 'Score: 0',
       textRenderer: textRenderer,
-      position: Vector2(20, 50),
+      position: Vector2(0, 0),
     );
-    add(scoreDisplay);
+    leftUI.add(scoreDisplay);
 
     stonesDisplay = TextComponent(
       text: 'Stones: 0/$maxStones',
       textRenderer: textRenderer,
-      position: Vector2(20, 80),
+      position: Vector2(0, scoreDisplay.height + 10),
     );
-    add(stonesDisplay);
+    leftUI.add(stonesDisplay);
 
-    // Set up bubble spawner
+    levelDisplay = TextComponent(
+      text: 'Level: 1',
+      textRenderer: textRenderer,
+      position: Vector2(0, stonesDisplay.y + stonesDisplay.height + 10),
+    );
+    leftUI.add(levelDisplay);
+
+    // Right Column
+    final rightUI = PositionComponent(
+      position: Vector2(size.x - padding, padding),
+      anchor: Anchor.topRight,
+      size: Vector2(columnWidth, size.y * 0.3),
+    );
+    add(rightUI);
+
+    waterFlowTextDisplay = TextComponent(
+      text: 'Water: 100%',
+      textRenderer: textRenderer,
+      position: Vector2(0, 0),
+    );
+    rightUI.add(waterFlowTextDisplay);
+
+    waterFlowBar = WaterFlowBar()
+      ..position = Vector2(0, waterFlowTextDisplay.height + 10);
+    rightUI.add(waterFlowBar);
+
+    freezeIndicator = FreezeIndicator()
+      ..position = Vector2(0, waterFlowBar.y + waterFlowBar.height + 10);
+    rightUI.add(freezeIndicator);
+
+    final goalDisplay = TextComponent(
+      text: 'Goal: ${levelState?.levelConfig?.goal}',
+      textRenderer: textRenderer,
+      position: Vector2(0, levelDisplay.y + levelDisplay.height + 10),
+    );
+    leftUI.add(goalDisplay);
+
+
+    // Bubble spawner
     _bubbleSpawner = TimerComponent(
-      period: 1.5,
+      period: _spawnInterval,
       onTick: _spawnBubble,
       repeat: true,
     );
@@ -87,30 +137,16 @@ class BubblePopFlameGame extends FlameGame with TapCallbacks {
     if (levelState != null) {
       scoreDisplay.text = 'Score: ${levelState!.score}';
       stonesDisplay.text = 'Stones: ${levelState!.stones}';
+      levelDisplay.text = 'Level: ${levelState!.currentLevel}';
 
-      // Update water flow display
-      final waterFlowComponent = children.query<TextComponent>().where(
-              (c) => c.text.startsWith('Water Flow:')
-      ).firstOrNull;
-      if (waterFlowComponent != null) {
-        waterFlowComponent.text = 'Water Flow: ${levelState!.waterFlowPercentage.toStringAsFixed(1)}%';
-      }
+      // Update the WaterFlowBar component's percentage
+      waterFlowBar.updatePercentage(levelState!.waterFlowPercentage);
 
-      // Update freeze bubbles display
-      final freezeComponent = children.query<TextComponent>().where(
-              (c) => c.text.startsWith('Freeze:')
-      ).firstOrNull;
-      if (freezeComponent != null) {
-        freezeComponent.text = 'Freeze: ${levelState!.freezeBubblesRemaining}';
-      }
+      // Update the WaterFlow Text component
+      waterFlowTextDisplay.text = 'Water: ${levelState!.waterFlowPercentage.toStringAsFixed(0)}%';
 
-      // Update level display
-      final levelComponent = children.query<TextComponent>().where(
-              (c) => c.text.startsWith('Level:')
-      ).firstOrNull;
-      if (levelComponent != null) {
-        levelComponent.text = 'Level: ${levelState!.currentLevel}';
-      }
+      // Update the freeze indicator
+      freezeIndicator.updateFreezeCount(levelState!.freezeBubblesRemaining);
     }
   }
 
@@ -131,20 +167,6 @@ class BubblePopFlameGame extends FlameGame with TapCallbacks {
       _random.nextDouble() * (size.x - bubble.size.x),
       size.y,
     );
-
-    // Varying speeds based on size (larger = slower)
-    double baseSpeed = 50.0 + _random.nextDouble() * 50.0;
-    switch (bubbleSize) {
-      case BubbleSize.large:
-        baseSpeed *= 0.7; // Slower
-        break;
-      case BubbleSize.medium:
-        baseSpeed *= 0.85;
-        break;
-      case BubbleSize.normal:
-        break; // Normal speed
-    }
-    bubble.speed = baseSpeed;
 
     add(bubble);
   }

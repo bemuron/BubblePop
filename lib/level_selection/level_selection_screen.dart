@@ -147,7 +147,7 @@ class _LevelCard extends StatelessWidget {
               const SizedBox(height: 8),
 
               // Goal
-              Text(
+              /*Text(
                 config.goal,
                 style: TextStyle(
                   fontSize: 12,
@@ -156,6 +156,21 @@ class _LevelCard extends StatelessWidget {
                 textAlign: TextAlign.center,
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
+              ),*/
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    config.goal,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: palette.ink.withOpacity(0.8),
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
               ),
 
               const SizedBox(height: 8),

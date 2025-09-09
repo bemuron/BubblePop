@@ -14,7 +14,7 @@ class Bubble extends SpriteComponent with HasGameRef<BubblePopFlameGame>, TapCal
   late final int _tapsRequired;
   late final double _bubbleScale;
 
-  double speed = 100.0;
+  late double speed;
   bool isPopped = false;
   bool isFrozen = false;
   int _tapsReceived = 0;
@@ -46,6 +46,25 @@ class Bubble extends SpriteComponent with HasGameRef<BubblePopFlameGame>, TapCal
   @override
   Future<void> onLoad() async {
     await super.onLoad();
+
+    // Set a base speed that increases with the level
+    double baseSpeed = 100.0 + (gameRef.levelState!.currentLevel * 20.0);
+
+    // Adjust speed based on bubble size (larger bubbles are slower)
+    switch (bubbleSize) {
+      case BubbleSize.large:
+        baseSpeed *= 0.7;
+        break;
+      case BubbleSize.medium:
+        baseSpeed *= 0.85;
+        break;
+      case BubbleSize.normal:
+      // Normal speed, no multiplier needed
+        break;
+    }
+
+    // Assign the final calculated speed
+    speed = baseSpeed;
 
     try {
       // Try to load size-specific sprite

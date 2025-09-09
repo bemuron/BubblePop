@@ -13,6 +13,8 @@ import '../player_progress/player_progress.dart';
 import '../style/confetti.dart';
 import '../style/palette.dart';
 import 'bubble_pop_game.dart';
+import '../screens/game_over_screen.dart';
+import '../screens/you_won_screen.dart';
 
 class PlaySessionScreen extends StatefulWidget {
   final int level;
@@ -41,63 +43,69 @@ class _PlaySessionScreenState extends State<PlaySessionScreen> {
           create: (context) => LevelState(
             onWin: _playerWon,
             onLose: _playerLost,
-          )..startLevel(widget.level), // Start the specified level
+          )..startLevel(widget.level),
         ),
       ],
-      child: IgnorePointer(
-        ignoring: _duringCelebration,
-        child: Scaffold(
-          backgroundColor: palette.backgroundPlaySession,
-          body: Stack(
-            children: [
-              // The main game widget
-              Positioned.fill(
-                child: BubblePopGame(),
-              ),
-
-              // UI overlay for pause, score, etc.
-              SafeArea(
-                child: Stack(
-                  children: [
-                    // Back button
-                    Align(
-                      alignment: Alignment.topLeft,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: InkResponse(
-                          onTap: () => GoRouter.of(context).pop(),
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: palette.backgroundSettings,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Icon(
-                              Icons.arrow_back_ios_new,
-                              color: palette.ink,
+      child: Consumer<LevelState>(
+        builder: (context, levelState, child) {
+          return IgnorePointer(
+            ignoring: _duringCelebration,
+            child: Scaffold(
+              backgroundColor: palette.backgroundPlaySession,
+              body: Stack(
+                children: [
+                  Positioned.fill(child: BubblePopGame()),
+                  SafeArea(
+                    child: Stack(
+                      children: [
+                        Align(
+                          alignment: Alignment.topLeft,
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: InkResponse(
+                              onTap: () => GoRouter.of(context).pop(),
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: palette.backgroundSettings,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Icon(
+                                  Icons.arrow_back_ios_new,
+                                  color: palette.ink,
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ),
-
-                    // Confetti overlay for celebration
-                    SizedBox.expand(
-                      child: Visibility(
-                        visible: _duringCelebration,
-                        child: IgnorePointer(
-                          child: Confetti(
-                            isStopped: !_duringCelebration,
+                        SizedBox.expand(
+                          child: Visibility(
+                            visible: _duringCelebration,
+                            child: IgnorePointer(
+                              child: Confetti(isStopped: !_duringCelebration),
+                            ),
                           ),
                         ),
-                      ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+
+                  if (levelState.isGameOver && levelState.didWin)
+                    YouWonScreen(
+                      levelState: levelState,
+                      onRestart: _restartGame,
+                    ),
+                  if (levelState.isGameOver && !levelState.didWin)
+                    GameOverScreen(
+                      levelState: levelState,
+                      onRestart: _restartGame,
+                    ),
+
+                ],
               ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }

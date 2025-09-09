@@ -120,6 +120,7 @@ class LevelState extends ChangeNotifier {
   int _freezeBubblesRemaining = 0;
   double _waterFlowPercentage = 100.0;
   bool _isGameOver = false;
+  bool _didWin = false;
   DateTime? _levelStartTime;
 
   // Getters
@@ -131,6 +132,7 @@ class LevelState extends ChangeNotifier {
   int get freezeBubblesRemaining => _freezeBubblesRemaining;
   double get waterFlowPercentage => _waterFlowPercentage;
   bool get isGameOver => _isGameOver;
+  bool get didWin => _didWin;
 
   Duration? get timeRemaining {
     if (_levelConfig?.timeLimit == null || _levelStartTime == null) return null;
@@ -187,6 +189,17 @@ class LevelState extends ChangeNotifier {
   }
 
   void setGameOver({required bool won}) {
+    {
+      if (_isGameOver) return;
+      _isGameOver = true;
+      _didWin = won;
+      if (won) {
+        onWin();
+      } else {
+        onLose();
+      }
+      notifyListeners();
+    }
     if (_isGameOver) return;
 
     _isGameOver = true;
@@ -205,16 +218,19 @@ class LevelState extends ChangeNotifier {
 
     bool won = false;
 
-    // Check target bubbles
-    if (_levelConfig!.targetBubbles != null &&
-        _bubblesPopped >= _levelConfig!.targetBubbles!) {
-      won = true;
+    // Check target bubbles AND minimum water flow
+    if (_levelConfig!.targetBubbles != null) {
+      if (_bubblesPopped >= _levelConfig!.targetBubbles! &&
+          (_levelConfig!.minimumWaterFlow == null ||
+              _waterFlowPercentage >= _levelConfig!.minimumWaterFlow!)) {
+        won = true;
+      }
     }
 
     // Check time limit survival
     if (_levelConfig!.timeLimit != null && timeRemaining == Duration.zero) {
       if (_levelConfig!.minimumWaterFlow == null ||
-          _waterFlowPercentage > _levelConfig!.minimumWaterFlow!) {
+          _waterFlowPercentage >= _levelConfig!.minimumWaterFlow!) {
         won = true;
       }
     }
@@ -250,18 +266,25 @@ class LevelState extends ChangeNotifier {
     if (_levelConfig!.timeLimit != null) {
       final remaining = timeRemaining;
       if (remaining == Duration.zero) {
-        if (_levelConfig!.minimumWaterFlow != null &&
-            _waterFlowPercentage <= _levelConfig!.minimumWaterFlow!) {
-          _isGameOver = true;
-          onLose();
-        } else if (_levelConfig!.targetBubbles == null) {
-          // Time-based survival level completed
-          _isGameOver = true;
-          onWin();
+        if (_levelConfig!.targetBubbles == null) {
+          // Time-based survival level
+          if (_levelConfig!.minimumWaterFlow != null &&
+              _waterFlowPercentage <= _levelConfig!.minimumWaterFlow!) {
+            print('GAME OVER: Time up and water flow too low!'); // Debug
+            _isGameOver = true;
+            onLose();
+          } else {
+            print('LEVEL WON: Survived time limit!'); // Debug
+            _isGameOver = true;
+            onWin();
+          }
+          notifyListeners();
         }
-        notifyListeners();
       }
     }
+
+    // Continuously check lose conditions
+    _checkGameOver();
   }
 
   void reset() {

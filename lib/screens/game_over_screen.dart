@@ -4,8 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../ads/ads_controller.dart';
-import '../audio/audio_controller.dart';
-import '../audio/sounds.dart';
 import '../game_internals/level_state.dart';
 import '../player_progress/player_progress.dart';
 import '../style/palette.dart';
