@@ -38,6 +38,7 @@ class BubblePopFlameGame extends FlameGame with TapCallbacks {
   late WaterFlowBar waterFlowBar;
   late TextComponent waterFlowTextDisplay;
   late FreezeIndicator freezeIndicator;
+  late TextComponent goalDisplay;
 
   @override
   Color backgroundColor() => const Color(0xFF87CEEB);
@@ -109,7 +110,7 @@ class BubblePopFlameGame extends FlameGame with TapCallbacks {
       ..position = Vector2(0, waterFlowBar.y + waterFlowBar.height + 10);
     rightUI.add(freezeIndicator);
 
-    final goalDisplay = TextComponent(
+    goalDisplay = TextComponent(
       text: 'Goal: ${levelState?.levelConfig?.goal}',
       textRenderer: textRenderer,
       position: Vector2(0, levelDisplay.y + levelDisplay.height + 10),
@@ -147,6 +148,9 @@ class BubblePopFlameGame extends FlameGame with TapCallbacks {
 
       // Update the freeze indicator
       freezeIndicator.updateFreezeCount(levelState!.freezeBubblesRemaining);
+
+      // Update the goal for the level
+      goalDisplay.text = 'Goal: ${levelState!.goalText}';
     }
   }
 
@@ -193,12 +197,6 @@ class BubblePopFlameGame extends FlameGame with TapCallbacks {
   /// Called when a bubble turns into a stone
   void addStone() {
     levelState?.addStones(1);
-
-    if ((levelState?.stones ?? 0) >= maxStones) {
-      // Game over - trigger the lose callback
-      levelState?.setGameOver(won: false);
-    }
-
     audioController?.playSfx(SfxType.buttonTap);
   }
 

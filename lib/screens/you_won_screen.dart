@@ -8,14 +8,18 @@ import '../style/palette.dart';
 
 /// You Won overlay that appears when the player wins
 class YouWonScreen extends StatelessWidget {
+  final VoidCallback onNextLevel;
+  final VoidCallback onRestart;
+  final VoidCallback onMainMenu;
+  final LevelState levelState;
+
   const YouWonScreen({
     super.key,
-    required this.onRestart,
     required this.levelState,
+    required this.onNextLevel,
+    required this.onRestart,
+    required this.onMainMenu,
   });
-
-  final VoidCallback onRestart;
-  final LevelState levelState;
 
   @override
   Widget build(BuildContext context) {
@@ -102,7 +106,7 @@ class YouWonScreen extends StatelessWidget {
                     ElevatedButton.icon(
                       onPressed: () {
                         levelState.nextLevel();
-                        onRestart();
+                        onRestart;
                       },
                       icon: const Icon(Icons.arrow_forward),
                       label: const Text('Next Level'),
@@ -114,9 +118,10 @@ class YouWonScreen extends StatelessWidget {
 
                     // Restart button
                     ElevatedButton.icon(
-                      onPressed: () {
-                        onRestart();
-                      },
+                        onPressed: () {
+                          levelState.reset();
+                          onRestart();
+                        },
                       icon: const Icon(Icons.refresh),
                       label: const Text('Restart'),
                       style: ElevatedButton.styleFrom(
@@ -131,9 +136,7 @@ class YouWonScreen extends StatelessWidget {
 
                 // Main Menu button
                 TextButton(
-                  onPressed: () {
-                    GoRouter.of(context).go('/');
-                  },
+                  onPressed: onMainMenu,
                   child: Text(
                     'Main Menu',
                     style: TextStyle(

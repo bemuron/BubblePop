@@ -61,7 +61,7 @@ class LevelSelectionScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(20),
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
-                children: List.generate(5, (index) {
+                children: List.generate(6, (index) {
                   final level = index + 1;
                   final config = LevelConfig.getLevel(level);
 
@@ -178,7 +178,7 @@ class _LevelCard extends StatelessWidget {
               // Difficulty indicator
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(5, (index) {
+                children: List.generate(6, (index) {
                   final filled = index < _getDifficultyLevel(level);
                   return Icon(
                     Icons.star,
@@ -201,7 +201,8 @@ class _LevelCard extends StatelessWidget {
       case 2: return 2;
       case 3: return 3;
       case 4: return 4;
-      default: return 5; // Level 5+ is max difficulty
+      case 5: return 5;
+      default: return 6; // Level 5+ is max difficulty
     }
   }
 }

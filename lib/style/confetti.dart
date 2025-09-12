@@ -1,4 +1,3 @@
-// File: lib/src/style/confetti.dart
 import 'package:flutter/material.dart';
 import 'dart:math';
 
