@@ -27,10 +27,11 @@ class Palette extends ChangeNotifier {
   Color get darkPen => const Color(0xff1d2a35);
   Color get ink => const Color(0xff062b47);
   Color get inkFullOpacity => const Color(0xff062b47);
+  Color get whitePen => const Color(0xffedf4f7);
 
   Color get backgroundMain => const Color(0xffedf4f7);
   Color get backgroundSettings => const Color(0xffedf4f7);
-  Color get backgroundLevelSelection => const Color(0xff9bb7d4);
+  Color get backgroundLevelSelection => const Color(0xffedf4f7);
   Color get backgroundPlaySession => const Color(0xff6c9bd1);
 
   Color get bubble => const Color(0xff4fc3f7);

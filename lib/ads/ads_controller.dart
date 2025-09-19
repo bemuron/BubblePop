@@ -13,6 +13,10 @@ class AdsController extends ChangeNotifier {
   /// Preloaded ad that can be used to show a rewarded ad to the player.
   RewardedAd? _rewardedAd;
 
+  // Track the loading status of the rewarded ad.
+  bool _isRewardedAdLoaded = false;
+  bool get isRewardedAdLoaded => _isRewardedAdLoaded;
+
   /// Preloaded interstitial ad
   InterstitialAd? _interstitialAd;
 
@@ -23,7 +27,7 @@ class AdsController extends ChangeNotifier {
     super.dispose();
   }
 
-  /// Preload a rewarded ad to be used later.
+  /// Preload a rewarded ad and an interstitial ad.
   void preloadAd() {
     _preloadRewardedAd();
     _preloadInterstitialAd();
@@ -32,6 +36,7 @@ class AdsController extends ChangeNotifier {
   /// Show a rewarded ad, if available.
   void showRewardedAd({
     required VoidCallback onUserEarnedReward,
+    required VoidCallback onAdDismissed, // Add this new callback
   }) {
     if (_rewardedAd == null) {
       if (kDebugMode) {
@@ -43,7 +48,22 @@ class AdsController extends ChangeNotifier {
     _rewardedAd!.show(onUserEarnedReward: (ad, reward) {
       onUserEarnedReward();
     });
+
+    _rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
+      onAdDismissedFullScreenContent: (ad) {
+        onAdDismissed(); // Call the resume callback here
+        ad.dispose();
+      },
+      onAdFailedToShowFullScreenContent: (ad, error) {
+        onAdDismissed(); // Also call it if the ad fails to show
+        ad.dispose();
+      },
+    );
+
+    // Reset the state and start pre-loading the next ad.
     _rewardedAd = null;
+    _isRewardedAdLoaded = false;
+    preloadAd();
   }
 
   /// Show an interstitial ad, if available.
@@ -57,9 +77,13 @@ class AdsController extends ChangeNotifier {
 
     await _interstitialAd!.show();
     _interstitialAd = null;
+    preloadAd();
   }
 
   void _preloadRewardedAd() {
+    // Return if an ad is already loaded
+    if (_isRewardedAdLoaded) return;
+
     // Use test ad unit IDs
     final adUnitId = _getRewardedAdUnitId();
 
@@ -69,9 +93,16 @@ class AdsController extends ChangeNotifier {
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (ad) {
           _rewardedAd = ad;
+          _isRewardedAdLoaded = true;
+          // Notify listeners that the ad state has changed, so the UI can rebuild.
           notifyListeners();
+          if (kDebugMode) {
+            print('Rewarded ad loaded.');
+          }
         },
         onAdFailedToLoad: (error) {
+          _isRewardedAdLoaded = false;
+          _rewardedAd?.dispose();
           if (kDebugMode) {
             print('RewardedAd failed to load: $error');
           }
@@ -104,7 +135,7 @@ class AdsController extends ChangeNotifier {
     if (Platform.isAndroid) {
       return 'ca-app-pub-3940256099942544/5224354917'; // Test ID
     } else if (Platform.isIOS) {
-      return 'ca-app-pub-3940256099942544/1712485313'; // Test ID
+      return 'ca-app-pub-3940256099942544/1712485360'; // Test ID
     } else {
       throw UnsupportedError('Unsupported platform');
     }

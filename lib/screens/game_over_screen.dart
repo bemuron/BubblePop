@@ -55,6 +55,10 @@ class _GameOverScreenState extends State<GameOverScreen>
     ));
 
     _animationController.forward();
+
+    // Preload the ad as soon as the screen is built
+    final adsController = context.read<AdsController>();
+    adsController.preloadAd();
   }
 
   @override
@@ -165,55 +169,51 @@ class _GameOverScreenState extends State<GameOverScreen>
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            // Continue with Ad button
+                            // Main Menu button
                             ElevatedButton.icon(
                               onPressed: () {
-                                // Preload another ad before showing
-                                adsController.preloadAd();
-                                adsController.showRewardedAd(
-                                  onUserEarnedReward: () {
-                                    // Reset stones to continue playing
-                                    widget.levelState.reset();
-                                    widget.onRestart();
-                                  },
-                                );
+                                GoRouter.of(context).go('/');
                               },
-                              icon: const Icon(Icons.play_arrow),
-                              label: const Text('Continue'),
+                              icon: const Icon(Icons.home),
+                              label: const Text('Main Menu'),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green,
-                                foregroundColor: Colors.white,
+                                backgroundColor: palette.backgroundLevelSelection,
+                                foregroundColor: palette.ink,
                               ),
                             ),
 
-                            // Restart button
+                            // Replay button (now with ad logic)
                             ElevatedButton.icon(
                               onPressed: () {
-                                widget.onRestart(); // Use widget.onRestart
+                                if (adsController.isRewardedAdLoaded) {
+                                  adsController.showRewardedAd(
+                                    onUserEarnedReward: () {
+                                      widget.levelState.reset();
+                                      widget.onRestart();
+                                      //GoRouter.of(context).pop();
+                                    },
+                                    onAdDismissed: () {
+                                      // The user dismissed the ad before getting a reward
+                                      widget.levelState.reset();
+                                      widget.onRestart();
+                                      //GoRouter.of(context).pop();
+                                    },
+                                  );
+                                } else {
+                                  // Fallback: If no ad is loaded, allow free restart
+                                  widget.levelState.reset();
+                                  widget.onRestart();
+                                  //GoRouter.of(context).pop();
+                                }
                               },
                               icon: const Icon(Icons.refresh),
-                              label: const Text('Restart'),
+                              label: Text(adsController.isRewardedAdLoaded ? 'Replay' : 'Replay'),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: palette.backgroundLevelSelection,
                                 foregroundColor: palette.ink,
                               ),
                             ),
                           ],
-                        ),
-
-                        const SizedBox(height: 20),
-
-                        // Main Menu button
-                        TextButton(
-                          onPressed: () {
-                            GoRouter.of(context).go('/');
-                          },
-                          child: Text(
-                            'Main Menu',
-                            style: TextStyle(
-                              color: palette.ink.withOpacity(0.7),
-                            ),
-                          ),
                         ),
                       ],
                     ),

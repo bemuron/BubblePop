@@ -8,16 +8,17 @@ import '../game_internals/level_state.dart';
 import '../audio/audio_controller.dart';
 import '../audio/sounds.dart';
 import 'bubble_pop_flame.dart';
+import '../player_progress/player_progress.dart';
 
 /// Widget wrapper for the Flame game
 class BubblePopGame extends StatefulWidget {
   const BubblePopGame({super.key});
 
   @override
-  State<BubblePopGame> createState() => _BubblePopGameState();
+  State<BubblePopGame> createState() => BubblePopGameState();
 }
 
-class _BubblePopGameState extends State<BubblePopGame> {
+class BubblePopGameState extends State<BubblePopGame> {
   late BubblePopFlameGame game;
 
   @override
@@ -26,14 +27,24 @@ class _BubblePopGameState extends State<BubblePopGame> {
     game = BubblePopFlameGame();
   }
 
+  // Public methods to control the game state
+  void pauseGame() {
+    game.pauseGame();
+  }
+
+  void resumeGame() {
+    game.resumeGame();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Consumer3<LevelState, AudioController, AdsController>(
-      builder: (context, levelState, audioController, adsController, child) {
+    return Consumer4<LevelState, AudioController, AdsController, PlayerProgressController>(
+      builder: (context, levelState, audioController, adsController, playerProgressController, child) {
         // Pass all controllers to the game
         game.levelState = levelState;
         game.audioController = audioController;
         game.adsController = adsController;
+        game.playerProgressController = playerProgressController; // Pass the player progress controller
 
         return GameWidget<BubblePopFlameGame>.controlled(
           gameFactory: () => game,

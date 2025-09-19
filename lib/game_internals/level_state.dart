@@ -118,8 +118,8 @@ class LevelConfig {
 
 /// Enhanced game state with water flow and levels
 class LevelState extends ChangeNotifier {
-  final VoidCallback onWin;
-  final VoidCallback onLose;
+  final Function(LevelState) onWin;
+  final Function(LevelState) onLose;
 
   LevelState({
     required this.onWin,
@@ -200,6 +200,11 @@ class LevelState extends ChangeNotifier {
     }
   }
 
+  void addFreezeBubble() {
+    _freezeBubblesRemaining++;
+    notifyListeners();
+  }
+
   void _updateWaterFlow() {
     if (_levelConfig == null) return;
 
@@ -225,20 +230,32 @@ class LevelState extends ChangeNotifier {
 
     notifyListeners();*/
 
+    print('🎮 DEBUG: Game over set - won: $_didWin');
+    print('🎮 DEBUG: Scheduling callback...');
+
     // Schedule the state change after the current frame is built
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      print('🎮 DEBUG: Executing callback - won: $won');
       if (won) {
-        onWin();
+        print('🎮 DEBUG: Calling onWin()');
+        onWin(this);
       } else {
-        onLose();
+        print('🎮 DEBUG: Calling onLose()');
+        onLose(this);
       }
-    });
 
-    notifyListeners();
+      notifyListeners();
+    });
   }
 
   void _checkWinConditions() {
-    if (_levelConfig == null || _isGameOver) return;
+    print('🏆 DEBUG: _checkWinConditions - Level: $_currentLevel, GameOver: $_isGameOver');
+    print('🏆 DEBUG: Bubbles: $_bubblesPopped/${_levelConfig?.targetBubbles}, Water: $_waterFlowPercentage/${_levelConfig?.minimumWaterFlow}');
+
+    if (_levelConfig == null || _isGameOver) {
+      print('🏆 DEBUG: Exiting early - levelConfig null: ${_levelConfig == null}, gameOver: $_isGameOver');
+      return;
+    }
 
     // Check target bubbles AND minimum water flow
     if (_levelConfig!.targetBubbles != null) {
@@ -264,7 +281,11 @@ class LevelState extends ChangeNotifier {
   }
 
   void _checkGameOver() {
-    if (_isGameOver) return;
+    print('💀 DEBUG: _checkGameOver - Stones: $_stones, Water: $_waterFlowPercentage%');
+    if (_isGameOver) {
+      print('💀 DEBUG: Already game over, exiting');
+      return;
+    }
 
     // Game over if water flow hits minimum threshold
     if (_levelConfig?.minimumWaterFlow != null &&
@@ -294,8 +315,6 @@ class LevelState extends ChangeNotifier {
     // Continuously check win and lose conditions
     _checkGameOver();
     _checkWinConditions();
-
-    //notifyListeners();
   }
 
   void reset() {
@@ -306,6 +325,13 @@ class LevelState extends ChangeNotifier {
 
   void nextLevel() {
     startLevel(_currentLevel + 1);
+  }
+
+  void _safeNotifyListeners() {
+    // Schedule the notification for after the current frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
   }
 
   BubbleSize getRandomBubbleSize() {

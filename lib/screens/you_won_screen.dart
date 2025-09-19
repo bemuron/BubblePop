@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../ads/ads_controller.dart';
 import '../game_internals/level_state.dart';
 import '../player_progress/player_progress.dart';
 import '../style/palette.dart';
@@ -25,6 +26,7 @@ class YouWonScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.watch<Palette>();
     final playerProgress = context.watch<PlayerProgressController>();
+    final adsController = context.watch<AdsController>();
 
     return Material(
       color: Colors.transparent,
@@ -105,8 +107,23 @@ class YouWonScreen extends StatelessWidget {
                     // Next Level button
                     ElevatedButton.icon(
                       onPressed: () {
-                        levelState.nextLevel();
-                        onRestart;
+                        if (adsController.isRewardedAdLoaded) {
+                          adsController.showRewardedAd(
+                              onUserEarnedReward: () {
+                                levelState.nextLevel();
+                                //onNextLevel();
+                              },
+                              onAdDismissed: () {
+                                // The user dismissed the ad, but the game should still continue.
+                                levelState.nextLevel();
+                                //onNextLevel();
+                              }
+                          );
+                        } else {
+                          // Fallback: If no ad is loaded, allow free progression
+                          levelState.nextLevel();
+                          //onNextLevel();
+                        }
                       },
                       icon: const Icon(Icons.arrow_forward),
                       label: const Text('Next Level'),
@@ -118,12 +135,27 @@ class YouWonScreen extends StatelessWidget {
 
                     // Restart button
                     ElevatedButton.icon(
-                        onPressed: () {
+                      onPressed: () {
+                        if (adsController.isRewardedAdLoaded) {
+                          adsController.showRewardedAd(
+                              onUserEarnedReward: () {
+                                levelState.reset();
+                                onRestart();
+                              },
+                              onAdDismissed: () {
+                                // The user dismissed the ad, but the game should still continue.
+                                levelState.reset();
+                                onRestart();
+                              }
+                          );
+                        } else {
+                          // Fallback: If no ad is loaded, allow free progression
                           levelState.reset();
                           onRestart();
-                        },
+                        }
+                      },
                       icon: const Icon(Icons.refresh),
-                      label: const Text('Restart'),
+                      label: const Text('Replay'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: palette.backgroundLevelSelection,
                         foregroundColor: palette.ink,

@@ -47,7 +47,7 @@ class MyApp extends StatelessWidget {
         providers: [
           ChangeNotifierProvider(create: (context) => SettingsController()..initialize()),
           ChangeNotifierProvider(
-            create: (context) => PlayerProgressController()..initialize(),
+            create: (context) => PlayerProgressController(),
           ),
           ChangeNotifierProvider<AudioController>(
             create: (context) => AudioController()..initialize(),

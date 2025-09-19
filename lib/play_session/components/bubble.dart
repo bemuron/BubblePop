@@ -1,7 +1,9 @@
+// File: lib/src/play_session/components/bubble.dart
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 
 import '../../audio/sounds.dart';
 import '../bubble_pop_flame.dart';
@@ -14,7 +16,7 @@ class Bubble extends SpriteComponent with HasGameRef<BubblePopFlameGame>, TapCal
   late final int _tapsRequired;
   late final double _bubbleScale;
 
-  late double speed;
+  double speed = 100.0;
   bool isPopped = false;
   bool isFrozen = false;
   int _tapsReceived = 0;
@@ -46,25 +48,6 @@ class Bubble extends SpriteComponent with HasGameRef<BubblePopFlameGame>, TapCal
   @override
   Future<void> onLoad() async {
     await super.onLoad();
-
-    // Set a base speed that increases with the level
-    double baseSpeed = 100.0 + (gameRef.levelState!.currentLevel * 20.0);
-
-    // Adjust speed based on bubble size (larger bubbles are slower)
-    switch (bubbleSize) {
-      case BubbleSize.large:
-        baseSpeed *= 0.7;
-        break;
-      case BubbleSize.medium:
-        baseSpeed *= 0.85;
-        break;
-      case BubbleSize.normal:
-      // Normal speed, no multiplier needed
-        break;
-    }
-
-    // Assign the final calculated speed
-    speed = baseSpeed;
 
     try {
       // Try to load size-specific sprite
