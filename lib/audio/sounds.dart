@@ -2,7 +2,8 @@
 List<String> soundTypeToFilename(SfxType type) {
   switch (type) {
     case SfxType.buttonTap:
-      return ['tap1.mp3', 'tap2.mp3'];
+      return ['tap1.mp3'];
+      //return ['tap1.mp3', 'tap2.mp3'];
     case SfxType.victory:
       return ['victory.mp3'];
     case SfxType.gameOver:

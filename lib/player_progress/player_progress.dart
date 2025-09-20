@@ -17,14 +17,14 @@ class PlayerProgressController extends ChangeNotifier {
   /// By default, settings are persisted using
   /// [LocalStoragePlayerProgressPersistence] (i.e. NSUserDefaults on iOS,
   /// SharedPreferences on Android or local storage on the web).
-  final PlayerProgressPersistence _store;
+  //final PlayerProgressPersistence _store;
 
   SharedPreferences? _prefs;
 
-  PlayerProgressController({PlayerProgressPersistence? store})
+  /*PlayerProgressController({PlayerProgressPersistence? store})
       : _store = store ?? LocalStoragePlayerProgressPersistence() {
     _getLatestFromStore();
-  }
+  }*/
 
   int _highScore = 0;
   int _gamesPlayed = 0;
@@ -48,13 +48,13 @@ class PlayerProgressController extends ChangeNotifier {
   Map<int, int> get starsForLevel => _starsForLevel;
 
   /// Initialize the controller and load saved progress.
-  /*Future<void> initialize() async {
+  Future<void> initialize() async {
     _prefs = await SharedPreferences.getInstance();
     await _loadProgress();
-  }*/
+  }
 
   /// Fetches the latest data from the backing persistence store.
-  Future<void> _getLatestFromStore() async {
+  /*Future<void> _getLatestFromStore() async {
     final level = await _store.getHighestLevelReached();
     if (level > _highestLevelReached) {
       _highestLevelReached = level;
@@ -71,7 +71,7 @@ class PlayerProgressController extends ChangeNotifier {
 
       unawaited(_store.saveHighestLevelReached(level));
     }
-  }
+  }*/
 
   /// Updates the high score if the provided score is higher.
   Future<void> setHighScore(int score) async {

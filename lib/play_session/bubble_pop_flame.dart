@@ -190,9 +190,9 @@ class BubblePopFlameGame extends FlameGame with TapCallbacks {
     );
     goalBar.add(goalDisplay);
 
-    // Freeze indicator - bottom right corner
+    // Freeze indicator - positioned safely within screen bounds
     freezeIndicator = FreezeIndicator()
-      ..position = Vector2(size.x - padding - 60, goalBar.y + goalBar.height + spacing);
+      ..position = Vector2(size.x - padding - 80, goalBar.y + goalBar.height + spacing);
     add(freezeIndicator);
 
     // Bubble spawner

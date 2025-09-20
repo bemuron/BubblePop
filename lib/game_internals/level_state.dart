@@ -1,4 +1,6 @@
 // File: lib/src/game_internals/level_state.dart
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'dart:math';
@@ -15,6 +17,7 @@ class LevelConfig {
   final Duration? timeLimit;
   final int? targetBubbles;
   final double? minimumWaterFlow;
+  final double bubbleSpawnInterval;
 
   LevelConfig({
     required this.levelNumber,
@@ -26,6 +29,7 @@ class LevelConfig {
     this.timeLimit,
     this.targetBubbles,
     this.minimumWaterFlow,
+    required this.bubbleSpawnInterval,
   });
 
   static LevelConfig getLevel(int level) {
@@ -40,6 +44,7 @@ class LevelConfig {
           goal: 'Pop 50 bubbles before water drops below 50%',
           targetBubbles: 50,
           minimumWaterFlow: 50.0,
+          bubbleSpawnInterval: 0.8,
         );
       case 2:
         return LevelConfig(
@@ -54,6 +59,7 @@ class LevelConfig {
           goal: 'Maintain water flow above 30% for 90 seconds',
           timeLimit: Duration(seconds: 90),
           minimumWaterFlow: 30.0,
+          bubbleSpawnInterval: 0.7,
         );
       case 3:
         return LevelConfig(
@@ -69,6 +75,7 @@ class LevelConfig {
           goal: 'Pop 100 bubbles and keep water flow above 20%',
           targetBubbles: 100,
           minimumWaterFlow: 20.0,
+          bubbleSpawnInterval: 0.6,
         );
       case 4:
         return LevelConfig(
@@ -84,6 +91,7 @@ class LevelConfig {
           goal: 'Survive 2 minutes without water flow hitting 0%',
           timeLimit: Duration(seconds: 120),
           minimumWaterFlow: 0.1,
+          bubbleSpawnInterval: 0.5,
         );
       case 5:
         return LevelConfig(
@@ -98,8 +106,11 @@ class LevelConfig {
           waterFlowSensitivity: 0.5,
           goal: 'Prevent more than 5 stones for 1 minute',
           timeLimit: Duration(seconds: 60),
+          bubbleSpawnInterval: 0.4,
         );
       default: // Level 6+: Endless mode
+      // Calculate spawn speed: starts at 0.4, decreases by 0.02 per level, minimum 0.2
+        final spawnSpeed = math.max(0.2, 0.4 - ((level - 6) * 0.02));
         return LevelConfig(
           levelNumber: level,
           initialStones: 5 + (level - 6),
@@ -111,6 +122,7 @@ class LevelConfig {
           freezeBubbles: max(1, 3 - (level - 6) ~/ 2),
           waterFlowSensitivity: 1.0 + (level - 6) * 0.2,
           goal: 'Endless survival - achieve high score',
+          bubbleSpawnInterval: spawnSpeed,
         );
     }
   }

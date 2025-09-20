@@ -128,21 +128,39 @@ class _PlaySessionScreenState extends State<PlaySessionScreen> {
                           // New button for rewarded ads
                           if (levelState.freezeBubblesRemaining == 0 && adsController.isRewardedAdLoaded)
                             Positioned(
-                              top: 50,
-                              right: 10,
-                              child: IconButton(
-                                icon: Icon(Icons.ice_skating, color: palette.ink, size: 40),
-                                onPressed: () {
-                                  _gameKey.currentState?.pauseGame();
-                                  adsController.showRewardedAd(
-                                    onUserEarnedReward: () {
-                                      levelState.addFreezeBubble();
-                                    },
-                                    onAdDismissed: () {
-                                      _gameKey.currentState?.resumeGame();
-                                    },
-                                  );
-                                },
+                              top: 120, // Below the UI elements but above middle of screen
+                              right: 10, // Right side of screen
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: palette.backgroundSettings.withOpacity(0.9),
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black26,
+                                      blurRadius: 4,
+                                      offset: Offset(2, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: IconButton(
+                                  icon: Icon(
+                                      Icons.ice_skating,
+                                      color: palette.ink,
+                                      size: 32
+                                  ),
+                                  onPressed: () {
+                                    _gameKey.currentState?.pauseGame();
+                                    adsController.showRewardedAd(
+                                      onUserEarnedReward: () {
+                                        levelState.addFreezeBubble();
+                                      },
+                                      onAdDismissed: () {
+                                        _gameKey.currentState?.resumeGame();
+                                      },
+                                    );
+                                  },
+                                  tooltip: 'Watch ad for freeze bubble',
+                                ),
                               ),
                             ),
                         ],
@@ -287,7 +305,7 @@ class _PlaySessionScreenState extends State<PlaySessionScreen> {
     // Calculate and record stars based on score
     final stars = _calculateStars(levelState.score, levelState.currentLevel, true);
     await playerProgress.recordLevelCompletion(levelState.currentLevel, stars: stars);
-    playerProgress.setLevelReached(levelState.currentLevel);
+    //playerProgress.setLevelReached(levelState.currentLevel);
 
     audioController.playSfx(SfxType.victory);
   }
